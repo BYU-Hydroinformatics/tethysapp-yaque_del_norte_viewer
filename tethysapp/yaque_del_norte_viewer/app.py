@@ -8,10 +8,10 @@ class YaqueDelNorteViewer(TethysAppBase):
 
     name = 'Yaque Del Norte Viewer'
     index = 'yaque_del_norte_viewer:home'
-    icon = 'yaque_del_norte_viewer/images/icon.gif'
+    icon = 'yaque_del_norte_viewer/images/flood-io-logo-png-transparent.png'
     package = 'yaque_del_norte_viewer'
     root_url = 'yaque-del-norte-viewer'
-    color = '#27ae60'
+    color = '#524f4f'
     description = 'Place a brief description of your app here.'
     tags = ''
     enable_feedback = False
