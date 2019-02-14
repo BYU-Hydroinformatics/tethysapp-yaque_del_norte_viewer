@@ -1,4 +1,3 @@
-
 $(document).ready(function () {
     let map = L.map("map").setView([19.042805, -70.581183], 7.2);
 
@@ -6,3 +5,4 @@ $(document).ready(function () {
         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 });
+
