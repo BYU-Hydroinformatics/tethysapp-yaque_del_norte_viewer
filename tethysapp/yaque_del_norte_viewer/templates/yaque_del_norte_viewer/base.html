@@ -45,26 +45,24 @@
     <li class="title">Select Flood Forecast Date</li>
 
     <!-- Select Forecast Date -->
-    <div class="">
+    <div style="padding: 0px 20px 10px;">
         <input type="date"/>
     </div>
 
     <li class="separator"></li>
     <li class="separator"></li>
 
-    <!-- Damage Report Button -->
-    {% gizmo dmg_button %}
-
-
-    <!-- Borrowed Button! -->
-    <div id="ingresar">
-        <a href="#sampleModal" role="button" class="btn btn-success" data-toggle="modal">Ingresar Datos</a>
+    <!-- Damage Report Button, Modal in home.html -->
+    <div class="row text-center">
+        <a class="btn btn-lg btn-primary" data-toggle="modal" data-target="#largeModal">View Forecasted Damage</a>
     </div>
+
 
 {% endblock %}
 
+
 {% block after_app_content %}
-    {% gizmo message_box %}
+
 {% endblock %}
 
 {% block content_dependent_styles %}
@@ -86,4 +84,5 @@
     <script src="{% static 'yaque_del_norte_viewer/js/main.js' %}" type="text/javascript"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"></script>
 {% endblock %}

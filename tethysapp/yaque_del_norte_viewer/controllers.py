@@ -7,37 +7,8 @@ def home(request):
     """
     Controller for the app home page.
     """
-    dmg_button = Button(
-        display_text='View Forecasted Damage Report',
-        name='damage-button',
 
-        attributes={
-            'onclick': 'app.show_dmg()'
-            # 'data-toggle': 'tooltip',
-            # 'data-placement': 'top',
-            # 'title': 'Calculate Path',
-            # 'onclick':'app.calculate()'
 
-        },
-    )
-
-    message_box = MessageBox(name='sampleModal',
-                             title='Resumen de Entradas',
-                             message='',
-                             dismiss_button='Regresar',
-                             affirmative_button='Proceder',
-                             width=400,
-                             affirmative_attributes='href=javascript:void(0);',
-                             )
-
-    table_view = TableView(column_names=('Name', 'Age', 'Job'),
-                           rows=[('Bill', 30, 'contractor'),
-                                 ('Fred', 18, 'programmer'),
-                                 ('Bob', 26, 'boss')],
-                           hover=True,
-                           striped=False,
-                           bordered=False,
-                           condensed=False)
 
     save_button = Button(
         display_text='',
@@ -96,9 +67,7 @@ def home(request):
     )
 
     context = {
-        'dmg_button': dmg_button,
-        'message_box': message_box,
-        'table_view': table_view,
+
         'save_button': save_button,
         'edit_button': edit_button,
         'remove_button': remove_button,
