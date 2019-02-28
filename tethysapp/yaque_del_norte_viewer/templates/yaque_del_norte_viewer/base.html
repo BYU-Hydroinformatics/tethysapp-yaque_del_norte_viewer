@@ -42,17 +42,24 @@
 
     <li class="separator"></li>
 
-    <li class="title">Select Flood Forecast Date</li>
-
     <!-- Select Forecast Date -->
+    <li class="title">Select Flood Forecast Date</li>
     <div style="padding: 0px 20px 10px;">
-        <input type="date"/>
+        <input type="date" id="dateinput"/>
     </div>
 
     <li class="separator"></li>
-    <li class="separator"></li>
 
-    <!-- Damage Report Button, Modal in home.html -->
+    <!-- Select Forecast Type-->
+    <li class="title">Select Forecast Type</li>
+  <div id="checkboxes" style="padding: 0px 20px 5px">
+    <input type="radio" name="forecast_type" id="checkprob" onclick="plotlegend('prob')">  Probability<br />
+    <input type="radio" name="forecast_type" id="checkmax" onclick="plotlegend('max')" checked>  Max<br />
+    <input type="radio" name="forecast_type" id="checkmean" onclick="plotlegend('mean')"> Mean<br />
+  </div>
+
+    <li class="separator"></li>
+    <!-- Damage Report Button, Modal code in home.html -->
     <div class="row text-center">
         <a class="btn btn-lg btn-primary" data-toggle="modal" data-target="#largeModal">View Forecasted Damage</a>
     </div>

@@ -1,8 +1,9 @@
 $(document).ready(function () {
-    let map = L.map("map", {
+    var map = L.map("map", {
         fullscreenControl: true,
         timeDimension: true,
-        timeDimensionControl: true}).setView([19.042805, -70.581183], 7.2);
+        timeDimensionControl: true,
+        }).setView([19.042805, -70.581183], 8);
 
     L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
@@ -15,7 +16,10 @@ $(document).ready(function () {
         zIndex: 2,
         format: "image/png",
     }).addTo(map);
-
 });
 
 
+$("#dateinput").on('change', function(){
+    var date = document.getElementById("dateinput").value;
+    console.log(date);
+});
