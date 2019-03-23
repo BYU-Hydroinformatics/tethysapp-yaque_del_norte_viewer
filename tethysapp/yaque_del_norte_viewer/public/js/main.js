@@ -15,38 +15,31 @@ const owsrootUrl = 'http://localhost:8080/geoserver/ows';
 
 // Population Layer (populationData variable defined in geojson_layers.js)
 const populationLayer = L.geoJSON(populationData, {
-    onEachFeature: onEachFeaturePopulation
+    onEachFeature: onEachFeaturePopulation,
+    style: function (feature) {
+        return {
+            weight: 2,
+            color: "#000000",
+            opacity: 1,
+            fillColor: "#B0DE5C",
+            fillOpacity: 0.8
+        }
+    },
 }).addTo(map);
 
 // 	Watershed Layer (watershedData variable defined in geojson_layers.js)
 const watershedLayer = L.geoJSON(watershedData, {
-    onEachFeature: onEachWatershed
+    onEachFeature: onEachWatershed,
+    style: function (feature) {
+        return {
+            weight: 2,
+            color: "#000000",
+            opacity: 1,
+            fillColor: "#B0DE5C",
+            fillOpacity: 0.8
+        }
+    },
 });
-
-// Drainage Line Layer
-// const defaultParameters = {
-//     service: 'WFS',
-//     version: '2.0',
-//     request: 'GetFeature',
-//     typeName: 'yaque_del_norte:ClippedYaqueDrainage',
-//     outputFormat: 'text/javascript',
-//     format_options: 'callback:getJson',
-//     SrsName: 'EPSG:4326'
-// };
-//
-// const parameters = L.Util.extend(defaultParameters);
-// const URL = owsrootUrl + L.Util.getParamString(parameters);
-//
-// $.ajax({
-//     url : URL,
-//     dataType : 'jsonp',
-//     jsonpCallback : 'getJson',
-//     success : function (response) {
-//         console.log(JSON.stringify(response));
-//         let WFSLayer = L.geoJson(response).addTo(map);
-//     }
-// });
-const drainageLineLayer = L.geoJSON(drainageLineData).addTo(map);
 
 // 	Land Use Layer Layer
 const landUseLayer = L.tileLayer.wms(owsrootUrl, {
@@ -59,17 +52,20 @@ const landUseLayer = L.tileLayer.wms(owsrootUrl, {
 let overlays = {
     "Population Layer": populationLayer,
     "Watershed Layer": watershedLayer,
-    "Land Use Layer": landUseLayer,
 };
 
 L.control.layers(overlays).addTo(map);
+const drainageLineLayer = L.geoJSON(drainageLineData).addTo(map);
 
 
 $("#dateinput").on('change', function () {
-    var date = document.getElementById("dateinput").value;
-    console.log(date);
+    const date = document.getElementById("dateinput").value;
 });
 
+// When the Layer Control layer is changed this brings the drainage lines to the front of the map.
+map.on("baselayerchange", function (event) {
+  drainageLineLayer.bringToFront();
+});
 
 // Helper Functions
 function onEachFeaturePopulation(feature, layer) {
