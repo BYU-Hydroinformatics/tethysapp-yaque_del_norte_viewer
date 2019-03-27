@@ -1,5 +1,4 @@
 // Add map and basemap to the screen
-// TODO: Recolor the layers that aren't drainage lines
 const map = L.map("map", {
     fullscreenControl: true,
     timeDimension: true,
@@ -11,9 +10,7 @@ L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
     zIndex: 1,
 }).addTo(map);
 
-const owsrootUrl = 'http://localhost:8080/geoserver/ows';
-
-// Population Layer (populationData variable defined in geojson_layers.js)
+// Population Layer (populationData variable defined in watershed_data.js)
 const populationLayer = L.geoJSON(populationData, {
     onEachFeature: onEachFeaturePopulation,
     style: function (feature) {
@@ -27,7 +24,7 @@ const populationLayer = L.geoJSON(populationData, {
     },
 }).addTo(map);
 
-// 	Watershed Layer (watershedData variable defined in geojson_layers.js)
+// 	Watershed Layer (watershedData variable defined in watershed_data.js)
 const watershedLayer = L.geoJSON(watershedData, {
     onEachFeature: onEachWatershed,
     style: function (feature) {
@@ -39,14 +36,6 @@ const watershedLayer = L.geoJSON(watershedData, {
             fillOpacity: 0.8
         }
     },
-});
-
-// 	Land Use Layer Layer
-const landUseLayer = L.tileLayer.wms(owsrootUrl, {
-    layers: 'yaque_del_norte:yaque_uso',
-    transparency: 'true',
-    format: 'image/png',
-    opacity: 0.5,
 });
 
 let overlays = {
@@ -117,10 +106,6 @@ function onEachWatershed(feature, layer) {
                 <tr>
                     <td>NOMBRE:&nbsp;</td>
                     <td>&nbsp;${feature.properties.NOMBRE}</td>
-                </tr>
-                <tr>
-                    <td>MICRO:&nbsp;</td>
-                    <td>&nbsp;${feature.properties.MICRO}</td>
                 </tr>
                 <tr>
                     <td>HECTARES:&nbsp;</td>
