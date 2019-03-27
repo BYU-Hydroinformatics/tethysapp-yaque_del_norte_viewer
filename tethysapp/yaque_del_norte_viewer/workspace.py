@@ -7,7 +7,7 @@ if __name__ == "__main__":
     import osgeo.ogr
 
     Base = declarative_base()
-    engine = create_engine("postgresql://username:password@IP:PORT/mydatabase")
+    engine = create_engine("")
 
     # DB Class
     class SpatialLandUse(Base):
@@ -16,13 +16,6 @@ if __name__ == "__main__":
         # Columns
         id = Column(Integer, primary_key=True)
         gridcode = Column(Integer)
-        fid_1 = Column(Integer)
-        id_1 = Column(Integer)
-        gridcode_1 = Column(Integer)
-        oid_ = Column(Integer)
-        value = Column(Integer)
-        count = Column(Float)
-        class_name = Column(String)
         area = Column(Float)
         geom = Column(Geometry('GEOMETRY'))
 
@@ -32,7 +25,7 @@ if __name__ == "__main__":
         SpatialLandUse.__table__.create(engine)
 
     # Read Shapefile with osgeo
-    shapefile_path = r"/home/wade/Downloads/Yaque_Land_Use_WGS84/yaque_uso.shp"
+    shapefile_path = r"/home/wade/Downloads/LandUseShapefile/LandUse.shp"
     shapefile_obj = osgeo.ogr.Open(shapefile_path)
     layer = shapefile_obj.GetLayer(0)
     layerDefinition = layer.GetLayerDefn()
@@ -49,13 +42,6 @@ if __name__ == "__main__":
         geometry_string = "SRID=4326;{}".format(wkt)
         temp_region = SpatialLandUse(
             gridcode=feature.GetField("GRIDCODE"),
-            fid_1=feature.GetField("FID_1"),
-            id_1=feature.GetField("ID_1"),
-            gridcode_1=feature.GetField("GRIDCODE_1"),
-            oid_=feature.GetField("OID_"),
-            value=feature.GetField("Value"),
-            count=feature.GetField("Count"),
-            class_name=feature.GetField("Class_name").encode('utf-8'),
             area=feature.GetField("Area"),
             geom=geometry_string,
         )
@@ -66,6 +52,5 @@ if __name__ == "__main__":
         except Exception as e:
             print(e)
 
-    # Commit and close DB session
-
+    # Close DB session
     session.close()
