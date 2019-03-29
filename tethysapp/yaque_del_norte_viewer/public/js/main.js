@@ -44,7 +44,8 @@ let overlays = {
 };
 
 L.control.layers(overlays).addTo(map);
-const drainageLineLayer = L.geoJSON(drainageLineData).addTo(map);
+const drainageLineLayer = L.geoJSON(drainageLineData, {
+    onEachFeature: onEachDrainageLine}).addTo(map);
 
 
 $("#dateinput").on('change', function () {
@@ -121,3 +122,20 @@ function onEachWatershed(feature, layer) {
     layer.bindPopup(popupContent);
 }
 
+function onEachDrainageLine(feature, layer) {
+    let popupContent = `
+        <table>
+            <tbody>
+                <tr>
+                    <td>GridID:&nbsp;</td>
+                    <td>&nbsp;${feature.properties.GridID}</td>
+                </tr>
+                <tr>
+                    <td>COMID:&nbsp;</td>
+                    <td>&nbsp;${feature.properties.HydroID}</td>
+                </tr>
+            </tbody>
+        </table>`;
+
+    layer.bindPopup(popupContent);
+}
