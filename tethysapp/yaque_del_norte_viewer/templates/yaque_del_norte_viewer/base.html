@@ -35,7 +35,9 @@
         <a class="btn btn-lg btn-primary" data-toggle="modal" data-target="#largeModal">View Forecasted Damage</a>
     </div>
 
-
+    <li class="separator"></li>
+    <li>Currently Selected Stream:</li>
+    <div id="current-stream"></div>
 {% endblock %}
 
 
@@ -58,6 +60,7 @@
     <script type="text/javascript" src="https://cdn.rawgit.com/nezasa/iso8601-js-period/master/iso8601.min.js"></script>
     <script type="text/javascript"
             src="https://cdn.rawgit.com/socib/Leaflet.TimeDimension/master/dist/leaflet.timedimension.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     {# Custom JS and GeoJSON Layers#}
     <script src="{% static 'yaque_del_norte_viewer/js/population_data.js' %}"></script>
     <script src="{% static 'yaque_del_norte_viewer/js/drainage_data.js' %}"></script>

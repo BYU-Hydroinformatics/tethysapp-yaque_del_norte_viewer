@@ -1,4 +1,8 @@
 // Add map and basemap to the screen
+
+let comid;
+let currentFloodExtentLayer;
+
 const map = L.map("map", {
     fullscreenControl: true,
     timeDimension: true,
@@ -45,7 +49,8 @@ let overlays = {
 
 L.control.layers(overlays).addTo(map);
 const drainageLineLayer = L.geoJSON(drainageLineData, {
-    onEachFeature: onEachDrainageLine}).addTo(map);
+    onEachFeature: onEachDrainageLine
+}).addTo(map);
 
 
 $("#dateinput").on('change', function () {
@@ -123,19 +128,38 @@ function onEachWatershed(feature, layer) {
 }
 
 function onEachDrainageLine(feature, layer) {
-    let popupContent = `
-        <table>
-            <tbody>
-                <tr>
-                    <td>GridID:&nbsp;</td>
-                    <td>&nbsp;${feature.properties.GridID}</td>
-                </tr>
-                <tr>
-                    <td>COMID:&nbsp;</td>
-                    <td>&nbsp;${feature.properties.HydroID}</td>
-                </tr>
-            </tbody>
-        </table>`;
+    // comid.push(feature.properties.HydroID); // TODO: Change this to COMID
 
-    layer.bindPopup(popupContent);
+    layer.on({
+        click: whenClicked
+    });
+
 }
+
+function whenClicked(e) {
+    const gridid = e.target.feature.properties.GridID;
+
+    if (currentFloodExtentLayer) {
+         map.removeLayer(currentFloodExtentLayer);
+    }
+
+    // TODO: Clear all other maps, and add the selected flood extent to the map
+    $("#current-stream").html(gridid);
+
+    comid = gridid;
+
+    // TODO: Add this, should just have to get the path to a netcdf file on the server
+    // currentFloodExtentLayer =
+}
+
+
+const data = [
+    {
+        x: ['2013-10-04 22:23:00', '2013-11-04 22:23:00', '2013-12-04 22:23:00'],
+        y: [1, 3, 6],
+        type: 'scatter'
+    }
+];
+
+Plotly.newPlot('plot-test', data);
+Plotly.newPlot('plot-test-2', data);
