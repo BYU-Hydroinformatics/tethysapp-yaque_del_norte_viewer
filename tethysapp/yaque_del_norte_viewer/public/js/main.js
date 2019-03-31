@@ -142,10 +142,13 @@ function whenClicked(e) {
     if (currentFloodExtentLayer) {
          map.removeLayer(currentFloodExtentLayer);
     }
-
+    grid = 104;
     // TODO: Clear all other maps, and add the selected flood extent to the map
-    $("#current-stream").html(gridid);
+    $("#current-stream").html(gridid); //Wade put this in, I'm not entirely sure why it's here.
 
+    var testWMS="https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedgrid" + data['gridid'] + ".nc"
+
+    addnetcdflayer (testWMS)
     comid = gridid;
 
     // TODO: Add this, should just have to get the path to a netcdf file on the server
@@ -161,5 +164,54 @@ const data = [
     }
 ];
 
-Plotly.newPlot('plot-test', data);
-Plotly.newPlot('plot-test-2', data);
+var layout_damage = {
+    title: 'Forecasted Damage',
+    width:425,
+    height:425,
+//    xaxis: {
+//        title: {
+//            text: 'Date',
+//        },
+//    },
+    yaxis: {
+        title: {
+            text: 'Damage (U.S. Dollars)'
+        }
+    }
+}
+
+var layout_depth = {
+    title: 'Forecasted Average Flood Depth',
+    width:425,
+    height:425,
+//    xaxis: {
+//        title: {
+//            text: 'Date',
+//        },
+//    },
+    yaxis: {
+        title: {
+            text: 'Depth (ft.)'
+        }
+    }
+}
+
+var layout_people = {
+    title: 'Number of People Impacted',
+    width:425,
+    height:425,
+//    xaxis: {
+//        title: {
+//            text: 'Date',
+//        },
+//    },
+    yaxis: {
+        title: {
+            text: 'People Impacted'
+        }
+    }
+}
+
+Plotly.newPlot('plot-test', data, layout_damage);
+Plotly.newPlot('plot-test-2', data, layout_depth);
+Plotly.newPlot('plot-test-3', data, layout_people);
