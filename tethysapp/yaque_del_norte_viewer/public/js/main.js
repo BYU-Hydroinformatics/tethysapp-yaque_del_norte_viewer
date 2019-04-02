@@ -1,70 +1,205 @@
-// Add map and basemap to the screen
+// CSRF Validation for Ajax Requests
+let csrftoken = Cookies.get('csrftoken');
 
-let comid;
-let currentFloodExtentLayer;
+function csrfSafeMethod(method) {
+    // these HTTP methods do not require CSRF protection
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+}
 
-const map = L.map("map", {
-    fullscreenControl: true,
-    timeDimension: true,
-    timeDimensionControl: true,
-}).setView([19.042805, -70.581183], 8);
-
-L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
-    zIndex: 1,
-}).addTo(map);
-
-// Population Layer (populationData variable defined in watershed_data.js)
-const populationLayer = L.geoJSON(populationData, {
-    onEachFeature: onEachFeaturePopulation,
-    style: function (feature) {
-        return {
-            weight: 2,
-            color: "#000000",
-            opacity: 1,
-            fillColor: "#B0DE5C",
-            fillOpacity: 0.8
+$.ajaxSetup({
+    beforeSend: function (xhr, settings) {
+        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
         }
-    },
-}).addTo(map);
-
-// 	Watershed Layer (watershedData variable defined in watershed_data.js)
-const watershedLayer = L.geoJSON(watershedData, {
-    onEachFeature: onEachWatershed,
-    style: function (feature) {
-        return {
-            weight: 2,
-            color: "#000000",
-            opacity: 1,
-            fillColor: "#B0DE5C",
-            fillOpacity: 0.8
-        }
-    },
+    }
 });
 
-let overlays = {
-    "Population Layer": populationLayer,
-    "Watershed Layer": watershedLayer,
-};
 
-L.control.layers(overlays).addTo(map);
-const drainageLineLayer = L.geoJSON(drainageLineData, {
-    onEachFeature: onEachDrainageLine
-}).addTo(map);
+// Main Body
+$(document).ready(function () {
+    // Globals
+    let comid;
+    let currentFloodExtentLayer;
 
 
-$("#dateinput").on('change', function () {
-    const date = document.getElementById("dateinput").value;
-});
+    // Add map and basemap to the screen
+    const map = L.map("map", {
+        fullscreenControl: true,
+        timeDimension: true,
+        timeDimensionControl: true,
+    }).setView([19.042805, -70.581183], 8);
 
-// When the Layer Control layer is changed this brings the drainage lines to the front of the map.
-map.on("baselayerchange", function (event) {
-  drainageLineLayer.bringToFront();
-});
+    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+        zIndex: 1,
+    }).addTo(map);
 
-// Helper Functions
-function onEachFeaturePopulation(feature, layer) {
-    let popupContent = `
+    // Population Layer (populationData variable defined in watershed_data.js)
+    const populationLayer = L.geoJSON(populationData, {
+        onEachFeature: onEachFeaturePopulation,
+        style: function (feature) {
+            return {
+                weight: 2,
+                color: "#000000",
+                opacity: 1,
+                fillColor: "#B0DE5C",
+                fillOpacity: 0.8
+            }
+        },
+    }).addTo(map);
+
+    // 	Watershed Layer (watershedData variable defined in watershed_data.js)
+    const watershedLayer = L.geoJSON(watershedData, {
+        onEachFeature: onEachWatershed,
+        style: function (feature) {
+            return {
+                weight: 2,
+                color: "#000000",
+                opacity: 1,
+                fillColor: "#B0DE5C",
+                fillOpacity: 0.8
+            }
+        },
+    });
+
+    let overlays = {
+        "Population Layer": populationLayer,
+        "Watershed Layer": watershedLayer,
+    };
+
+    L.control.layers(overlays).addTo(map);
+    const drainageLineLayer = L.geoJSON(drainageLineData, {
+        onEachFeature: onEachDrainageLine
+    }).addTo(map);
+
+
+    $("#dateinput").on('change', function () {
+        const date = document.getElementById("dateinput").value;
+    });
+
+    // When the Layer Control layer is changed this brings the drainage lines to the front of the map.
+    map.on("baselayerchange", function (event) {
+        drainageLineLayer.bringToFront();
+    });
+
+    // Event that fire's after the modal content is loaded
+    $('#damage-report-modal').on('shown.bs.modal', function () {
+
+        let json_data = {
+                query_string: "https://tethys.byu.edu/thredds/fileServer/testAll/floodextent/floodedgrid186.nc"
+        };
+
+        $.ajax({
+            url: "/apps/yaque-del-norte-viewer/damage_report_ajax/", // the endpoint
+            type: "POST", // http method
+            data: JSON.stringify(json_data),
+            dataType: 'json',
+
+            // handle a successful response
+            success: function (resp) {
+
+                console.log(resp);
+
+                // Plot the damage at each date
+                const damage_data = [
+                    {
+                        x: resp["time_list"],
+                        y: resp["damage_list"],
+                        type: 'scatter'
+                    }
+                ];
+
+                const layout_damage = {
+                    title: 'Forecasted Damage',
+                    width: 425,
+                    height: 425,
+                    xaxis: {
+                        title: {
+                            text: 'Date',
+                        },
+                    },
+                    yaxis: {
+                        title: {
+                            text: 'Damage (U.S. Dollars)'
+                        }
+                    }
+                };
+
+                Plotly.newPlot('damage_plot', damage_data, layout_damage);
+
+                // Plot max depth at each time interval
+                const depth_data = [
+                    {
+                        x: resp["time_list"],
+                        y: resp["max_height_list"],
+                        type: 'scatter'
+                    }
+                ];
+
+                const layout_depth = {
+                    title: 'Forecasted Average Flood Depth',
+                    width: 425,
+                    height: 425,
+                    xaxis: {
+                        title: {
+                            text: 'Date',
+                        },
+                    },
+                    yaxis: {
+                        title: {
+                            text: 'Depth (ft.)'
+                        }
+                    }
+                };
+
+                Plotly.newPlot('depth_plot', depth_data, layout_depth);
+
+                // Plotting the number of people impacted on each day
+                const people_data = [
+                    {
+                        x: resp["time_list"],
+                        y: resp["max_height_list"], // TODO: Change this to the actual data
+                        type: 'scatter'
+                    }
+                ];
+
+                const layout_people = {
+                    title: 'Number of People Impacted',
+                    width: 425,
+                    height: 425,
+                    xaxis: {
+                        title: {
+                            text: 'Date',
+                        },
+                    },
+                    yaxis: {
+                        title: {
+                            text: 'People Impacted'
+                        }
+                    }
+                };
+
+                Plotly.newPlot('people_plot', people_data, layout_people);
+
+                // TODO: Finish the table elements
+
+                $("#damage-report").fadeIn();
+                console.log(resp);
+                $("#damage-report-loader").fadeOut();
+            },
+
+            // handle a non-successful response
+            error: function (xhr, errmsg, err) {
+                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg + ".</div>"); // add the error to the dom
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                $("#damage-report-loader").fadeOut();
+            }
+        });
+    });
+
+    // Helper Functions
+    function onEachFeaturePopulation(feature, layer) {
+        let popupContent = `
         <table>
             <tbody>
                 <tr>
@@ -86,11 +221,11 @@ function onEachFeaturePopulation(feature, layer) {
             </tbody>
         </table>`;
 
-    layer.bindPopup(popupContent);
-}
+        layer.bindPopup(popupContent);
+    }
 
-function onEachWatershed(feature, layer) {
-    let popupContent = `
+    function onEachWatershed(feature, layer) {
+        let popupContent = `
         <table>
             <tbody>
                 <tr>
@@ -124,94 +259,36 @@ function onEachWatershed(feature, layer) {
             </tbody>
         </table>`;
 
-    layer.bindPopup(popupContent);
-}
-
-function onEachDrainageLine(feature, layer) {
-    // comid.push(feature.properties.HydroID); // TODO: Change this to COMID
-
-    layer.on({
-        click: whenClicked
-    });
-
-}
-
-function whenClicked(e) {
-    const gridid = e.target.feature.properties.GridID;
-
-    if (currentFloodExtentLayer) {
-         map.removeLayer(currentFloodExtentLayer);
+        layer.bindPopup(popupContent);
     }
-    grid = 104;
-    // TODO: Clear all other maps, and add the selected flood extent to the map
-    $("#current-stream").html(gridid); //Wade put this in, I'm not entirely sure why it's here.
 
-    var testWMS="https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedgrid" + data['gridid'] + ".nc"
+    function onEachDrainageLine(feature, layer) {
+        // comid.push(feature.properties.HydroID); // TODO: Change this to COMID
 
-    addnetcdflayer (testWMS)
-    comid = gridid;
+        layer.on({
+            click: whenClicked
+        });
 
-    // TODO: Add this, should just have to get the path to a netcdf file on the server
-    // currentFloodExtentLayer =
-}
-
-
-const data = [
-    {
-        x: ['2013-10-04 22:23:00', '2013-11-04 22:23:00', '2013-12-04 22:23:00'],
-        y: [1, 3, 6],
-        type: 'scatter'
     }
-];
 
-const layout_damage = {
-    title: 'Forecasted Damage',
-    width: 425,
-    height: 425,
-//    xaxis: {
-//        title: {
-//            text: 'Date',
-//        },
-//    },
-    yaxis: {
-        title: {
-            text: 'Damage (U.S. Dollars)'
+    function whenClicked(e) {
+        const gridid = e.target.feature.properties.GridID;
+
+        if (currentFloodExtentLayer) {
+            map.removeLayer(currentFloodExtentLayer);
         }
-    }
-};
+        let grid = 104;
+        // TODO: Clear all other maps, and add the selected flood extent to the map
+        $("#current-stream").html(gridid); //Wade put this in, I'm not entirely sure why it's here.
 
-const layout_depth = {
-    title: 'Forecasted Average Flood Depth',
-    width: 425,
-    height: 425,
-//    xaxis: {
-//        title: {
-//            text: 'Date',
-//        },
-//    },
-    yaxis: {
-        title: {
-            text: 'Depth (ft.)'
-        }
-    }
-};
+        // TODO: Finish this line
+        //const testWMS = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedgrid" + data['gridid'] + ".nc";
 
-const layout_people = {
-    title: 'Number of People Impacted',
-    width: 425,
-    height: 425,
-//    xaxis: {
-//        title: {
-//            text: 'Date',
-//        },
-//    },
-    yaxis: {
-        title: {
-            text: 'People Impacted'
-        }
-    }
-};
+        // TODO: Add this method
+        // addnetcdflayer(testWMS);
+        comid = gridid;
 
-Plotly.newPlot('plot-test', data, layout_damage);
-Plotly.newPlot('plot-test-2', data, layout_depth);
-Plotly.newPlot('plot-test-3', data, layout_people);
+        // TODO: Add this, should just have to get the path to a netcdf file on the server
+        // currentFloodExtentLayer =
+    }
+});

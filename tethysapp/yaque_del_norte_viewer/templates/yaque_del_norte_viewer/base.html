@@ -32,7 +32,7 @@
     <li class="separator"></li>
     <!-- Damage Report Button, Modal code in home.html -->
     <div class="row text-center">
-        <a id="damage-report-button" class="btn btn-lg btn-primary" data-toggle="modal" data-target="#largeModal">
+        <a id="damage-report-button" class="btn btn-lg btn-primary" data-toggle="modal" data-target="#damage-report-modal">
             View Forecasted Damage
         </a>
     </div>
@@ -58,17 +58,21 @@
 
 {% block scripts %}
     {{ block.super }}
+    {# Allows csrf verification with AJAX #}
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+    {# Leaflet CDNs #}
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js"></script>
     <script type="text/javascript" src="https://cdn.rawgit.com/nezasa/iso8601-js-period/master/iso8601.min.js"></script>
     <script type="text/javascript"
             src="https://cdn.rawgit.com/socib/Leaflet.TimeDimension/master/dist/leaflet.timedimension.min.js"></script>
+    {# Plotly CDN #}
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     {# Custom JS and GeoJSON Layers#}
     <script src="{% static 'yaque_del_norte_viewer/js/population_data.js' %}"></script>
     <script src="{% static 'yaque_del_norte_viewer/js/drainage_data.js' %}"></script>
     <script src="{% static 'yaque_del_norte_viewer/js/watershed_data.js' %}"></script>
     <script src="{% static 'yaque_del_norte_viewer/js/main.js' %}" type="text/javascript"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"></script>
+{#    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>#}
+{#    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>#}
+{#    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"></script>#}
 {% endblock %}

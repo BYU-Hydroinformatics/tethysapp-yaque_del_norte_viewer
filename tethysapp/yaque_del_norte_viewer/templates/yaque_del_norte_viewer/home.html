@@ -41,103 +41,66 @@
     </div>
 
     <!-- Damage Report Modal -->
-    <div class="modal fade" id="largeModal" tabindex="-1" role="dialog" aria-labelledby="largeModal" aria-hidden="true">
+    <div class="modal fade" id="damage-report-modal" tabindex="-1" role="dialog" aria-labelledby="damage-report-modal"
+         aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     <h4 class="modal-title" id="myModalLabel">Damage Report</h4>
                 </div>
-                <div> {# class="modal-body"> #}
-                    <div class="container-fluid">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h1>
-                                    Damage Summary Statistics
-                                </h1>
-                                <table class="table">
-                                    <tr>
-                                        <td>
-                                            Max. Forecasted Damage:
-                                        </td>
-                                        <td>
-                                            <div id="max_damage">$1.5 million</div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            Max. Forecasted Flood Depth:
-                                        </td>
-                                        <td>
-                                            <div id="max_depth">5 ft</div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            Max. Forecasted People Affected:
-                                        </td>
-                                        <td>
-                                            <div id="max_people">1,000 people</div>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
-                            <div class="col-md-6">
-                                <div id="plot-test"></div>
+                <div class="modal-body">
+                    <div id="damage-report-loader" class="loader"></div>
+                    <div id="damage-report" style="display: none">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h3>
+                                        Damage Summary Statistics
+                                    </h3>
+                                    <table class="table">
+                                        <tr>
+                                            <td>
+                                                Max. Forecasted Damage:
+                                            </td>
+                                            <td>
+                                                <div id="max_damage">$1.5 million</div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                Max. Forecasted Flood Depth:
+                                            </td>
+                                            <td>
+                                                <div id="max_depth">5 ft</div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                Max. Forecasted People Affected:
+                                            </td>
+                                            <td>
+                                                <div id="max_people">1,000 people</div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <div id="damage_plot"></div>
 
+                                </div>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div id="plot-test-3"></div>
-                            </div>
-                            <div class="col-md-6">
-                                <div id="plot-test-2"></div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div id="people_plot"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div id="depth_plot"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                {#                <div>#}
-                {#                    <table>#}
-                {#                        <tr>#}
-                {#                            <td>#}
-                {#                                <div id="plot-test"></div>#}
-                {#                            </td>#}
-                {#                            <td>#}
-                {#                                <div id="plot-test-3"></div>#}
-                {#                            </td>#}
-                {##}
-                {#                        </tr>#}
-                {#                        <tr>#}
-                {#                            <td>#}
-                {#                                <div id="plot-test-2"></div>#}
-                {#                            </td>#}
-                {#                            <td>#}
-                {#                                <table class="table">#}
-                {#                                    <tr>#}
-                {#                                        <td align="right">Max. Forecasted Damage:</td>#}
-                {#                                        <td>#}
-                {#                                            <div id="max_damage"> $1.5 million</div>#}
-                {#                                        </td>#}
-                {#                                    </tr>#}
-                {#                                    <tr>#}
-                {#                                        <td align="right">Max. Forecasted Flood Depth:</td>#}
-                {#                                        <td>#}
-                {#                                            <div id="max_depth"> 5 ft</div>#}
-                {#                                        </td>#}
-                {#                                    </tr>#}
-                {#                                    <tr>#}
-                {#                                        <td align="right">Max. Forecasted People Affected:</td>#}
-                {#                                        <td>#}
-                {#                                            <div id="max_people"> 1,000 people</div>#}
-                {#                                        </td>#}
-                {#                                    </tr>#}
-                {#                                </table>#}
-                {#                            </td>#}
-                {#                        </tr>#}
-                {#                    </table>#}
-                {#                </div>#}
-
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                     <button type="button" class="btn btn-primary">Save changes</button>
