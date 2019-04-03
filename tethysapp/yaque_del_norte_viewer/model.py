@@ -1,3 +1,6 @@
+from __future__ import division
+import time
+
 from xarray import open_dataset
 import uuid
 import json
@@ -30,6 +33,7 @@ class SpatialLandUse(Base):
 
 
 def calculate_cost(gridcode, depth, ratio):
+
     land_use_dict = {
         9: None,
         17: "AGRICULTURAL",
@@ -90,7 +94,7 @@ def calculate_cost(gridcode, depth, ratio):
     else:
         return 0
 
-    # This is code to generate other plots, may be useful if the land use maps are updated
+    # This is code to generate other curves, may be useful if the land use maps are updated
     # # Residential
     # x_residential = np.array([0, 0.5, 1.0, 1.5, 2.0, 3, 4, 5, 6])
     # y_residential = np.array([0, 34.85, 50.5, 59.78, 67.41, 69.84, 71.0, 71.0, 71.0])
@@ -118,6 +122,7 @@ def generate_summary_df(query_string):
         db_username, db_password, db_ip, db_port, db_name)
     )
 
+    start = time.time()
     # Get request for data from Thredds Server
     res = requests.get(query_string)
 
@@ -143,6 +148,10 @@ def generate_summary_df(query_string):
     ds.close()  # Close dataset
     os.remove(tmp_file_path)  # Remove temporary NetCDF file
 
+    print("Time to Download file and read it again:", time.time() - start)
+
+    start = time.time()
+
     df = df.loc[df["Height"] != 0]  # Drop Zero Values
     df = df.reset_index()  # Convert from multi-index df to single-index df
 
@@ -151,6 +160,10 @@ def generate_summary_df(query_string):
     # Creating lat lon df
     coord_df = df[["lat", "lon", "grid_code"]]
     coord_df = coord_df.drop_duplicates()
+
+    print("Time to manipulate the DF", time.time() - start)
+
+    start = time.time()
 
     """Start Session"""
     Session = sessionmaker(bind=engine)
@@ -167,10 +180,17 @@ def generate_summary_df(query_string):
             func.ST_Contains(SpatialLandUse.geom, 'SRID=4326;POINT({} {})'.format(lon, lat))
         )
 
-        for result in query:
-            coord_df.iloc[i, 2] = result.gridcode
+        # import pdb; pdb.set_trace()
+
+        coord_df.iloc[i, 2] = query[0].gridcode
+        assert query.count() == 1, "Query by point returned multiple polygons (model.generate_summary_df)"
 
     session.close()
+
+    print("Time to query database", time.time() - start)
+
+    # TODO: Optimize this segment
+    start = time.time()
 
     # Assign gridcodes to the main dataframe
     for i, df_tuple in enumerate(df.itertuples(index=False)):
@@ -181,16 +201,24 @@ def generate_summary_df(query_string):
 
         df.iloc[i, 4] = gridcode
 
+    print("Time to assign gridcodes to df", time.time() - start)
+
+    # TODO: optimize this segment with the interpolation, I think calling scipy.interpolate is taking too long
+    start = time.time()
+
     # Exchange Rate
     r = requests.get('https://api.exchangeratesapi.io/latest')
     json.loads(r.text)
     exchange_rates = json.loads(r.text)
     ratio = exchange_rates["rates"]["USD"]  # USD compared to Euros
 
-    df["damage"] = 0
+    df["damage"] = list(zip(df["grid_code"], df["Height"], [ratio] * len(df)))
 
-    for i, row in enumerate(df.itertuples(index=False)):
-        df.iloc[i, 5] = calculate_cost(row[4], row[3], ratio)
+    df["damage"] = df["damage"].apply(lambda x: calculate_cost(x[0], x[1], x[2]))
+
+    print("Time to calculate damages", time.time() - start)
+
+    start = time.time()
 
     # Convert dates to strings
     df["time"] = df["time"].apply(lambda x: x.strftime("%Y-%m-%d %H:%M:%S"))
@@ -200,5 +228,7 @@ def generate_summary_df(query_string):
     df_summed = df.groupby(df["time"]).agg({'Height': 'max',
                                             'damage': 'sum',
                                             })
+
+    print("Time to group and summarize", time.time() - start)
 
     return df_summed

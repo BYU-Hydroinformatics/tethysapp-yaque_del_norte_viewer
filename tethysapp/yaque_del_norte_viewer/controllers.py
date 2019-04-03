@@ -1,3 +1,5 @@
+from __future__ import division
+
 # Django imports
 from django.shortcuts import render
 from django.http import JsonResponse
