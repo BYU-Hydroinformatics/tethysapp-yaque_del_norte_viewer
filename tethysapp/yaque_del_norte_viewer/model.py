@@ -32,35 +32,42 @@ class SpatialLandUse(Base):
     geom = Column(Geometry('GEOMETRY'))
 
 
+# Model Functions
 def calculate_cost(gridcode, depth, ratio):
 
     land_use_dict = {
-        9: None,
-        17: "AGRICULTURAL",
-        49: "AGRICULTURAL",
-        4: None,
-        13: None,
-        5: None,
-        48: "AGRICULTURAL",
-        12: None,
-        7: None,
-        6: None,
-        8: None,
-        46: "AGRICULTURAL",
-        31: None,
-        14: "AGRICULTURAL",
-        42: "AGRICULTURAL",
-        112: None,
-        20: "COMMERCIAL",
-        15: None,
-        137: "AGRICULTURAL",
         1: None,
-        39: None,
-        144: None,
-        45: "AGRICULTURAL",
+        4: None,
+        5: None,
+        6: None,
+        7: None,
+        8: None,
+        9: None,
+        11: None,
+        12: None,
+        13: None,
+        14: 'AGRICULTURAL',
+        15: None,
+        17: 'AGRICULTURAL',
         18: None,
-        105: "AGRICULTURAL",
-        19: "AGRICULTURAL"
+        19: 'AGRICULTURAL',
+        20: 'COMMERCIAL',
+        30: None,
+        31: None,
+        39: None,
+        42: 'AGRICULTURAL',
+        43: 'AGRICULTURAL',
+        45: 'AGRICULTURAL',
+        46: 'AGRICULTURAL',
+        48: 'AGRICULTURAL',
+        49: 'AGRICULTURAL',
+        51: 'AGRICULTURAL',
+        52: 'AGRICULTURAL',
+        85: None,
+        105: 'AGRICULTURAL',
+        112: None,
+        137: 'AGRICULTURAL',
+        144: None,
     }
 
     grid_code_map = land_use_dict[gridcode]
@@ -169,6 +176,7 @@ def generate_summary_df(query_string):
     Session = sessionmaker(bind=engine)
     session = Session()
 
+    # TODO: Optimize this segment with an apply statement
     # Query for unique lat lon vals
     for i, df_tuple in enumerate(coord_df.itertuples(index=False)):
 
