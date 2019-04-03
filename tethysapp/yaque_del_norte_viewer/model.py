@@ -197,7 +197,7 @@ def generate_summary_df(query_string):
 
     print("Time to query database", time.time() - start)
 
-    # TODO: Optimize this segment
+    # TODO: Optimize this segment with apply statement or a map
     start = time.time()
 
     # Assign gridcodes to the main dataframe
@@ -220,9 +220,9 @@ def generate_summary_df(query_string):
     exchange_rates = json.loads(r.text)
     ratio = exchange_rates["rates"]["USD"]  # USD compared to Euros
 
-    df["damage"] = list(zip(df["grid_code"], df["Height"], [ratio] * len(df)))
+    df["damage"] = list(zip(df["grid_code"], df["Height"]))
 
-    df["damage"] = df["damage"].apply(lambda x: calculate_cost(x[0], x[1], x[2]))
+    df["damage"] = df["damage"].apply(lambda x: calculate_cost(x[0], x[1], ratio))
 
     print("Time to calculate damages", time.time() - start)
 

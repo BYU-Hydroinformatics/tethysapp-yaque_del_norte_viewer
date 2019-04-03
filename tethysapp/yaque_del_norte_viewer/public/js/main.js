@@ -86,7 +86,7 @@ $(document).ready(function () {
     $('#damage-report-modal').on('shown.bs.modal', function () {
 
         let json_data = {
-                query_string: "https://tethys.byu.edu/thredds/fileServer/testAll/floodextent/floodedgrid186.nc"
+            query_string: "https://tethys.byu.edu/thredds/fileServer/testAll/floodextent/floodedgrid186.nc"
         };
 
         $.ajax({
@@ -181,7 +181,16 @@ $(document).ready(function () {
 
                 Plotly.newPlot('people_plot', people_data, layout_people);
 
-                // TODO: Finish the table elements
+                // Table Elements
+                const formatter = new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'USD',
+                });
+
+                $("#max_damage").html(formatter.format(Math.max(...resp["damage_list"])));
+                $("#max_depth").html(Math.max(...resp["max_height_list"]).toString() + " meters");
+                //$("#max_people").html(Math.max(...resp["max_people_list"])); // TODO: Change this to the actual values
+                $("#max_people").html("1543 People");
 
                 $("#damage-report").fadeIn();
                 console.log(resp);
