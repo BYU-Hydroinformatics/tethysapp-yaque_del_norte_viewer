@@ -7,7 +7,7 @@ if __name__ == "__main__":
     import osgeo.ogr
 
     Base = declarative_base()
-    engine = create_engine("")
+    engine = create_engine("")  # Engine information goes here
 
     # DB Class
     class SpatialLandUse(Base):
