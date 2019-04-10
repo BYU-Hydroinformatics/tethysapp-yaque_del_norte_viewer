@@ -162,9 +162,15 @@ def generate_summary_df(query_string):
     df = df.loc[df["Height"] != 0]  # Drop Zero Values
     df = df.reset_index()  # Convert from multi-index df to single-index df
 
+    print("zeros dropped and index reset")
+
     # Creating lat lon df
-    coord_df = df[["lat", "lon", "grid_code"]]
+    print(df.columns)
+    coord_df = df[["lat", "lon"]]
+    print(len(coord_df))
     coord_df = coord_df.drop_duplicates()
+    # coord_df["grid_code"] = 0
+    print("coord df created and duplicates dropped")
 
     print("Time to manipulate the DF", time.time() - start)
 
@@ -177,43 +183,28 @@ def generate_summary_df(query_string):
     # TODO: Optimize this segment with an apply statement
     # Query for unique lat lon vals
 
-    # coord_dict = {}
-
+    coord_dict = {}
     for i, df_tuple in enumerate(coord_df.itertuples(index=False)):
 
-        lat = df_tuple[0]
-        lon = df_tuple[1]
+        lat = df_tuple.lat
+        lon = df_tuple.lon
 
         """How to query to see where the point resides"""
         query = session.query(SpatialLandUse).filter(
             func.ST_Contains(SpatialLandUse.geom, 'SRID=4326;POINT({} {})'.format(lon, lat))
         )
 
-        # import pdb; pdb.set_trace()
-
-        # coord_dict[(lat, lon)] = query[0].gridcode
-
-        coord_df.iloc[i, 2] = query[0].gridcode
-
+        coord_dict[(lat, lon)] = query[0].gridcode
         assert query.count() == 1, "Query by point returned multiple polygons (model.generate_summary_df)"
 
     session.close()
 
     print("Time to query database", time.time() - start)
 
-    # TODO: Optimize this segment with apply statement or a map
     start = time.time()
 
-    # Assign gridcodes to the main dataframe
-    for i, df_tuple in enumerate(df.itertuples(index=False)):
-        lat = df_tuple[0]
-        lon = df_tuple[1]
-
-        gridcode = coord_df.loc[(coord_df['lat'] == lat) & (coord_df['lon'] == lon)].values[0, 2]
-
-        df.iloc[i, 4] = gridcode
-    # df["grid_code"] = list(zip(df["lat"], df["lon"]))
-    # df["grid_code"] = df["grid_code"].map(coord_dict)
+    df["grid_code"] = list(zip(df["lat"], df["lon"]))
+    df["grid_code"] = df["grid_code"].map(coord_dict)
 
     print("Time to assign gridcodes to df", time.time() - start)
 
