@@ -86,7 +86,7 @@ $(document).ready(function () {
     $('#damage-report-modal').on('shown.bs.modal', function () {
 
         let json_data = {
-            query_string: "https://tethys.byu.edu/thredds/fileServer/testAll/floodextent/floodedgrid186.nc"
+            query_string: "https://tethys.byu.edu/thredds/fileServer/testAll/floodextent/floodedgrid150.nc"
         };
 
         $.ajax({
@@ -137,7 +137,7 @@ $(document).ready(function () {
                 ];
 
                 const layout_depth = {
-                    title: 'Forecasted Average Flood Depth',
+                    title: 'Forecasted Maximum Flood Depth',
                     width: 425,
                     height: 425,
                     xaxis: {
@@ -147,7 +147,7 @@ $(document).ready(function () {
                     },
                     yaxis: {
                         title: {
-                            text: 'Depth (ft.)'
+                            text: 'Depth (m)'
                         }
                     }
                 };
@@ -158,7 +158,7 @@ $(document).ready(function () {
                 const people_data = [
                     {
                         x: resp["time_list"],
-                        y: resp["max_height_list"], // TODO: Change this to the actual data
+                        y: resp["population_impacted_list"],
                         type: 'scatter'
                     }
                 ];
@@ -189,8 +189,7 @@ $(document).ready(function () {
 
                 $("#max_damage").html(formatter.format(Math.max(...resp["damage_list"])));
                 $("#max_depth").html(Math.max(...resp["max_height_list"]).toString() + " meters");
-                //$("#max_people").html(Math.max(...resp["max_people_list"])); // TODO: Change this to the actual values
-                $("#max_people").html("1543 People");
+                $("#max_people").html(Math.max(...resp["population_impacted_list"]) + " people");
 
                 $("#damage-report").fadeIn();
                 console.log(resp);

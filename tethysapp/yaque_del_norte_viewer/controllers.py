@@ -30,6 +30,7 @@ def damage_report_ajax(request):
     """
     Ajax controller to generate the damage report
     """
+    # TODO: Add a check to make sure that the netcdf at the query string is not empty
     try:
         json_body = json.loads(request.body)
 
@@ -40,12 +41,14 @@ def damage_report_ajax(request):
         time_list = summary_df.index.to_list()
         max_height_list = summary_df["Height"].values.tolist()
         damage_list = np.round(summary_df["damage"].values, 2).tolist()
+        population_impacted_list = np.ceil(summary_df["population"].values).tolist()
 
         response = {
             "error": False,
             "time_list": time_list,
             "max_height_list": max_height_list,
-            "damage_list": damage_list
+            "damage_list": damage_list,
+            "population_impacted_list": population_impacted_list,
         }
 
         return JsonResponse(response)

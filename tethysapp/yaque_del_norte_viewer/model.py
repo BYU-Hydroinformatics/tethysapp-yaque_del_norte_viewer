@@ -13,6 +13,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine, Column, Integer, func, Float
 from sqlalchemy.orm import sessionmaker
 from geoalchemy2 import Geometry
+import pandas as pd
 
 # Tethys Imports
 from .app import YaqueDelNorteViewer as App
@@ -29,6 +30,16 @@ class SpatialLandUse(Base):
     id = Column(Integer, primary_key=True)
     gridcode = Column(Integer)
     area = Column(Float)
+    geom = Column(Geometry('GEOMETRY'))
+
+
+class SpatialPopulation(Base):
+    __tablename__ = 'population_table'
+
+    # Columns
+    id = Column(Integer, primary_key=True)
+    population = Column(Float)
+    area_m2 = Column(Float)
     geom = Column(Geometry('GEOMETRY'))
 
 
@@ -152,6 +163,7 @@ def generate_summary_df(query_string):
 
     ds = open_dataset(tmp_file_path)
     df = ds.to_dataframe().dropna()  # Drop NaN values
+    time_series_str = pd.to_datetime(ds["time"].data).strftime("%Y-%m-%d %H:%M:%S")
     ds.close()  # Close dataset
     os.remove(tmp_file_path)  # Remove temporary NetCDF file
 
@@ -181,9 +193,10 @@ def generate_summary_df(query_string):
     session = Session()
 
     # TODO: Optimize this segment with an apply statement
-    # Query for unique lat lon vals
 
+    # Query for unique lat lon vals
     coord_dict = {}
+    population_density_dict = {}
     for i, df_tuple in enumerate(coord_df.itertuples(index=False)):
 
         lat = df_tuple.lat
@@ -193,9 +206,20 @@ def generate_summary_df(query_string):
         query = session.query(SpatialLandUse).filter(
             func.ST_Contains(SpatialLandUse.geom, 'SRID=4326;POINT({} {})'.format(lon, lat))
         )
+        query_population = session.query(SpatialPopulation).filter(
+            func.ST_Contains(SpatialPopulation.geom, 'SRID=4326;POINT({} {})'.format(lon, lat))
+        )
+        print(list(query_population))
+
+        assert query.count() == 1, "Query by point returned multiple polygons (model.generate_summary_df)"
+        assert query_population.count() == 1, "Query population by point returned multiple polygons " \
+                                              "(model.generate_summary_df"
 
         coord_dict[(lat, lon)] = query[0].gridcode
-        assert query.count() == 1, "Query by point returned multiple polygons (model.generate_summary_df)"
+
+        # TODO: Use custom settings to set grid size rather than hard code it.
+        # Population Density is based on 90m dem size
+        population_density_dict[(lat, lon)] = query_population[0].population / query_population[0].area_m2 * 90**2
 
     session.close()
 
@@ -206,7 +230,10 @@ def generate_summary_df(query_string):
     df["grid_code"] = list(zip(df["lat"], df["lon"]))
     df["grid_code"] = df["grid_code"].map(coord_dict)
 
-    print("Time to assign gridcodes to df", time.time() - start)
+    df["population"] = list(zip(df["lat"], df["lon"]))
+    df["population"] = df["population"].map(population_density_dict)
+
+    print("Time to assign gridcodes and populations to df", time.time() - start)
 
     # TODO: optimize this segment with the interpolation, I think calling scipy.interpolate is taking too long
     start = time.time()
@@ -225,6 +252,10 @@ def generate_summary_df(query_string):
 
     start = time.time()
 
+    df["population"] = df["grid_code"]
+
+    start = time.time()
+
     # Convert dates to strings
     df["time"] = df["time"].apply(lambda x: x.strftime("%Y-%m-%d %H:%M:%S"))
 
@@ -232,10 +263,15 @@ def generate_summary_df(query_string):
 
     df_summed = df.groupby(df["time"]).agg({'Height': 'max',
                                             'damage': 'sum',
+                                            'population': 'sum',
                                             })
 
     print("Time to group and summarize", time.time() - start)
 
-    print("Finished with summary df generation")
+    start = time.time()
+
+    df_summed = df_summed.reindex(time_series_str, fill_value=0)
+
+    print("Time to reindex with entire time series", time.time() - start)
 
     return df_summed
