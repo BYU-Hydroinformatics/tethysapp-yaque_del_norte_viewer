@@ -85,6 +85,7 @@ $(document).ready(function () {
     // Event that fire's after the modal content is loaded
     $('#damage-report-modal').on('shown.bs.modal', function () {
 
+        // Not flooded: 104
         let json_data = {
             query_string: "https://tethys.byu.edu/thredds/fileServer/testAll/floodextent/floodedgrid150.nc"
         };
@@ -100,100 +101,110 @@ $(document).ready(function () {
 
                 console.log(resp);
 
-                // Plot the damage at each date
-                const damage_data = [
-                    {
-                        x: resp["time_list"],
-                        y: resp["damage_list"],
-                        type: 'scatter'
-                    }
-                ];
+                let isError = resp["error"];
 
-                const layout_damage = {
-                    title: 'Forecasted Damage',
-                    width: 425,
-                    height: 425,
-                    xaxis: {
-                        title: {
-                            text: 'Date',
-                        },
-                    },
-                    yaxis: {
-                        title: {
-                            text: 'Damage (U.S. Dollars)'
+                if (isError) {
+                    let errorMessage = $("#error_message");
+                    errorMessage.html(`<p>${resp["error_message"]}</p>`)
+                    errorMessage.fadeIn();
+                    $("#damage-report-loader").fadeOut();
+
+                } else {
+                    // Plot the damage at each date
+                    const damage_data = [
+                        {
+                            x: resp["time_list"],
+                            y: resp["damage_list"],
+                            type: 'scatter'
                         }
-                    }
-                };
+                    ];
 
-                Plotly.newPlot('damage_plot', damage_data, layout_damage);
-
-                // Plot max depth at each time interval
-                const depth_data = [
-                    {
-                        x: resp["time_list"],
-                        y: resp["max_height_list"],
-                        type: 'scatter'
-                    }
-                ];
-
-                const layout_depth = {
-                    title: 'Forecasted Maximum Flood Depth',
-                    width: 425,
-                    height: 425,
-                    xaxis: {
-                        title: {
-                            text: 'Date',
+                    const layout_damage = {
+                        title: 'Forecasted Damage',
+                        width: 425,
+                        height: 425,
+                        xaxis: {
+                            title: {
+                                text: 'Date',
+                            },
                         },
-                    },
-                    yaxis: {
-                        title: {
-                            text: 'Depth (m)'
+                        yaxis: {
+                            title: {
+                                text: 'Damage (U.S. Dollars)'
+                            }
                         }
-                    }
-                };
+                    };
 
-                Plotly.newPlot('depth_plot', depth_data, layout_depth);
+                    Plotly.newPlot('damage_plot', damage_data, layout_damage);
 
-                // Plotting the number of people impacted on each day
-                const people_data = [
-                    {
-                        x: resp["time_list"],
-                        y: resp["population_impacted_list"],
-                        type: 'scatter'
-                    }
-                ];
+                    // Plot max depth at each time interval
+                    const depth_data = [
+                        {
+                            x: resp["time_list"],
+                            y: resp["max_height_list"],
+                            type: 'scatter'
+                        }
+                    ];
 
-                const layout_people = {
-                    title: 'Number of People Impacted',
-                    width: 425,
-                    height: 425,
-                    xaxis: {
-                        title: {
-                            text: 'Date',
+                    const layout_depth = {
+                        title: 'Forecasted Maximum Flood Depth',
+                        width: 425,
+                        height: 425,
+                        xaxis: {
+                            title: {
+                                text: 'Date',
+                            },
                         },
-                    },
-                    yaxis: {
-                        title: {
-                            text: 'People Impacted'
+                        yaxis: {
+                            title: {
+                                text: 'Depth (m)'
+                            }
                         }
-                    }
-                };
+                    };
 
-                Plotly.newPlot('people_plot', people_data, layout_people);
+                    Plotly.newPlot('depth_plot', depth_data, layout_depth);
 
-                // Table Elements
-                const formatter = new Intl.NumberFormat('en-US', {
-                    style: 'currency',
-                    currency: 'USD',
-                });
+                    // Plotting the number of people impacted on each day
+                    const people_data = [
+                        {
+                            x: resp["time_list"],
+                            y: resp["population_impacted_list"],
+                            type: 'scatter'
+                        }
+                    ];
 
-                $("#max_damage").html(formatter.format(Math.max(...resp["damage_list"])));
-                $("#max_depth").html(Math.max(...resp["max_height_list"]).toString() + " meters");
-                $("#max_people").html(Math.max(...resp["population_impacted_list"]) + " people");
+                    const layout_people = {
+                        title: 'Number of People Impacted',
+                        width: 425,
+                        height: 425,
+                        xaxis: {
+                            title: {
+                                text: 'Date',
+                            },
+                        },
+                        yaxis: {
+                            title: {
+                                text: 'People Impacted'
+                            }
+                        }
+                    };
 
-                $("#damage-report").fadeIn();
-                console.log(resp);
-                $("#damage-report-loader").fadeOut();
+                    Plotly.newPlot('people_plot', people_data, layout_people);
+
+                    // Table Elements
+                    const formatter = new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD',
+                    });
+
+                    $("#max_damage").html(formatter.format(Math.max(...resp["damage_list"])));
+                    $("#max_depth").html(Math.max(...resp["max_height_list"]).toString() + " meters");
+                    $("#max_people").html(Math.max(...resp["population_impacted_list"]) + " people");
+
+                    $("#damage-report").fadeIn();
+                    console.log(resp);
+                    $("#damage-report-loader").fadeOut();
+                }
             },
 
             // handle a non-successful response

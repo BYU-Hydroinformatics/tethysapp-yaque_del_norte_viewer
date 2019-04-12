@@ -174,6 +174,9 @@ def generate_summary_df(query_string):
     df = df.loc[df["Height"] != 0]  # Drop Zero Values
     df = df.reset_index()  # Convert from multi-index df to single-index df
 
+    if df.empty:
+        return None
+
     print("zeros dropped and index reset")
 
     # Creating lat lon df
@@ -181,7 +184,7 @@ def generate_summary_df(query_string):
     coord_df = df[["lat", "lon"]]
     print(len(coord_df))
     coord_df = coord_df.drop_duplicates()
-    # coord_df["grid_code"] = 0
+
     print("coord df created and duplicates dropped")
 
     print("Time to manipulate the DF", time.time() - start)
@@ -209,7 +212,6 @@ def generate_summary_df(query_string):
         query_population = session.query(SpatialPopulation).filter(
             func.ST_Contains(SpatialPopulation.geom, 'SRID=4326;POINT({} {})'.format(lon, lat))
         )
-        print(list(query_population))
 
         assert query.count() == 1, "Query by point returned multiple polygons (model.generate_summary_df)"
         assert query_population.count() == 1, "Query population by point returned multiple polygons " \
@@ -235,7 +237,8 @@ def generate_summary_df(query_string):
 
     print("Time to assign gridcodes and populations to df", time.time() - start)
 
-    # TODO: optimize this segment with the interpolation, I think calling scipy.interpolate is taking too long
+    # TODO: optimize this segment with the interpolation, I think calling scipy.interpolate is taking too long, pickle
+    # might be faster
     start = time.time()
 
     # Exchange Rate

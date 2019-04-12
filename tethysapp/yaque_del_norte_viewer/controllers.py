@@ -38,27 +38,38 @@ def damage_report_ajax(request):
 
         summary_df = generate_summary_df(query_string)
 
-        time_list = summary_df.index.to_list()
-        max_height_list = summary_df["Height"].values.tolist()
-        damage_list = np.round(summary_df["damage"].values, 2).tolist()
-        population_impacted_list = np.ceil(summary_df["population"].values).tolist()
+        # TODO: Make this better by screening streams ahead of time and calling an api to see if flooded.
+        if summary_df is None:
 
-        response = {
-            "error": False,
-            "time_list": time_list,
-            "max_height_list": max_height_list,
-            "damage_list": damage_list,
-            "population_impacted_list": population_impacted_list,
-        }
+            response = {
+                "error": True,
+                "error_message": "There is no flooding in this stream."
+            }
 
-        return JsonResponse(response)
+            return JsonResponse(response)
+
+        else:
+            time_list = summary_df.index.to_list()
+            max_height_list = summary_df["Height"].values.tolist()
+            damage_list = np.round(summary_df["damage"].values, 2).tolist()
+            population_impacted_list = np.ceil(summary_df["population"].values).tolist()
+
+            response = {
+                "error": False,
+                "time_list": time_list,
+                "max_height_list": max_height_list,
+                "damage_list": damage_list,
+                "population_impacted_list": population_impacted_list,
+            }
+
+            return JsonResponse(response)
 
     except Exception:
         tb = traceback.format_exc()
 
         response = {
             "error": True,
-            "traceback": tb,
+            "error_message": tb,
         }
 
         return JsonResponse(response)
