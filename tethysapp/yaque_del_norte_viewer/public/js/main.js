@@ -20,7 +20,7 @@ $(document).ready(function () {
     // Globals
     let comid;
     let currentFloodExtentLayer;
-
+    netcdf = L.layerGroup()
 
     // Add map and basemap to the screen
     const map = L.map("map", {
@@ -282,7 +282,7 @@ $(document).ready(function () {
     }
 
     function onEachDrainageLine(feature, layer) {
-        // comid.push(feature.properties.HydroID); // TODO: Change this to COMID
+        // comid.push(feature.propertiesCOMID);
 
         layer.on({
             click: whenClicked
@@ -290,24 +290,73 @@ $(document).ready(function () {
 
     }
 
+    function addnetcdflayer (wms, scale, maxheight) {
+
+        if (scale == 'prob') {
+            var range = '1.5,100'
+            var layer = 'Flood_Probability'
+            var style = 'boxfill/prob'
+            var src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/probscale.nc?REQUEST=GetLegendGraphic&LAYER=Flood_Probability&PALETTE=prob&COLORSCALERANGE=0,100"
+        } else {
+            var range = '0,' + maxheight
+            var layer = 'timeseries'
+            var style = 'boxfill/whiteblue'
+            var src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=whiteblue&COLORSCALERANGE=0," + maxheight
+        }
+
+        var testLayer = L.tileLayer.wms(wms, {
+            layers: layer,
+            format: 'image/png',
+            transparent: true,
+            opacity:0.8,
+            styles: style,
+            colorscalerange: range,
+            attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
+        });
+        console.log(testLayer);
+        var testTimeLayer = L.timeDimension.layer.wms(testLayer, {
+            updateTimeDimension: true,
+        });
+        netcdf.addLayer(testTimeLayer).addTo(map)
+
+
+        $(".legend").remove()
+
+        var Legend = L.control({
+            position: 'bottomright'
+        });
+
+        Legend.onAdd = function(map) {
+            var div = L.DomUtil.create('div', 'info legend');
+            div.innerHTML +=
+                '<img src="' + src + '" alt="legend">';
+            return div;
+        };
+
+        Legend.addTo(map);
+    }
+
     function whenClicked(e) {
-        const gridid = e.target.feature.properties.GridID;
+        const COMID = e.target.feature.properties.COMID;
+
+        netcdf.clearLayers();
 
         if (currentFloodExtentLayer) {
             map.removeLayer(currentFloodExtentLayer);
         }
-        let grid = 104;
-        // TODO: Clear all other maps, and add the selected flood extent to the map
-        $("#current-stream").html(gridid); //Wade put this in, I'm not entirely sure why it's here.
 
-        // TODO: Finish this line
-        //const testWMS = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedgrid" + data['gridid'] + ".nc";
+        var testWMS=`https://tethys.byu.edu/thredds/wms/testAll/Yaque_Del_Norte_Viewer/floodextent${COMID}.nc`
+        var scale = 'flooded'
+        var maxheight = 3
+        addnetcdflayer (testWMS, scale, maxheight)
 
-        // TODO: Add this method
-        // addnetcdflayer(testWMS);
-        comid = gridid;
+         $("#current-stream").html(COMID);
 
         // TODO: Add this, should just have to get the path to a netcdf file on the server
         // currentFloodExtentLayer =
+
     }
+
+
+
 });
