@@ -42,9 +42,8 @@ def damage_report_ajax(request):
 
         query_string = json_body["query_string"]
 
-        summary_df = generate_summary_df(query_string)
+        summary_df, full_report = generate_summary_df(query_string)
 
-        # TODO: Make this better by screening streams ahead of time and calling an api to see if flooded.
         if summary_df is None:
 
             response = {
@@ -66,6 +65,7 @@ def damage_report_ajax(request):
                 "max_height_list": max_height_list,
                 "damage_list": damage_list,
                 "population_impacted_list": population_impacted_list,
+                "full_results": full_report.to_csv(index=False)
             }
 
             return JsonResponse(response)
@@ -102,8 +102,6 @@ def is_flooded_check(request):
 
     tmp_file_name = str(uuid.uuid4()) + ".nc"
     tmp_file_path = os.path.join(netcdf_dir, tmp_file_name)
-
-    print(tmp_file_path)
 
     with open(tmp_file_path, 'wb') as out:
         out.write(io_object.read())

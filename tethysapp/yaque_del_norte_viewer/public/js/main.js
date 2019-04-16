@@ -18,7 +18,6 @@ $.ajaxSetup({
 // Main Body
 $(document).ready(function () {
     // Globals
-    let currentFloodExtentLayer;
     let netcdf = L.layerGroup();
 
     // Add map and basemap to the screen
@@ -83,7 +82,6 @@ $(document).ready(function () {
             for (let i = 0; i < resp["rivids"].length; i++) {
                 lookUpObject[resp["rivids"][i]] = resp["is_flooded"][i]
             }
-
 
 
             const drainageLineLayer = L.geoJSON(drainageLineData, {
@@ -238,6 +236,18 @@ $(document).ready(function () {
                     $("#max_depth").html(Math.max(...resp["max_height_list"]).toString() + " meters");
                     $("#max_people").html(Math.max(...resp["population_impacted_list"]) + " people");
 
+                    // Save full report csv to a hidden element
+                    let a = document.createElement("a");
+                    document.body.appendChild(a);
+                    a.style = "display; none";
+                    a.id = "saveFile";
+
+                    console.log(resp["full_results"]);
+
+                    let blob = new Blob([resp["full_results"]], {type: "text/csv"});
+                    a.href = window.URL.createObjectURL(blob);
+                    a.download = "Full_Damage_Report.csv";
+
                     $("#damage-report").fadeIn();
                     $("#damage-report-loader").fadeOut();
                 }
@@ -250,6 +260,15 @@ $(document).ready(function () {
                 $("#damage-report-loader").fadeOut();
             }
         });
+
+        $("#download-full-report").on("click", function () {
+            console.log("Download report button clicked");
+            let saveFile = document.getElementById("saveFile");
+	        if (saveFile) {
+                saveFile.click();
+            }
+        })
+
     });
 
     // Helper Functions
@@ -317,40 +336,42 @@ $(document).ready(function () {
         layer.bindPopup(popupContent);
     }
 
-    function addnetcdflayer(wms, scale, maxheight) {
+    function whenClicked(e) {
+        const COMID = e.target.feature.properties.COMID;
 
-        let src;
-        let style;
-        let layer;
-        let range;
+        netcdf.clearLayers();
 
-        if (scale === 'prob') {
-            range = '1.5,100';
-            layer = 'Flood_Probability';
-            style = 'boxfill/prob';
-            src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/probscale.nc?REQUEST=GetLegendGraphic&LAYER=Flood_Probability&PALETTE=prob&COLORSCALERANGE=0,100";
-        } else {
-            range = '0,' + maxheight;
-            layer = 'timeseries';
-            style = 'boxfill/whiteblue';
-            src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=whiteblue&COLORSCALERANGE=0," + maxheight;
-        }
+        const testWMS = `https://tethys.byu.edu/thredds/wms/testAll/Yaque_Del_Norte_Viewer/floodextent${COMID}.nc`;
 
-        const floodMapLayer = L.tileLayer.wms(wms, {
-            layers: layer,
-            format: 'image/png',
+        // Make Flood map show up over GeoJSON layers
+        map.createPane('floodMap');
+        map.getPane('floodMap').style.zIndex = 650;
+        map.getPane('floodMap').style.pointerEvents = 'none';
+
+        const floodMapLayer = L.tileLayer.wms(testWMS, {
+            version: '1.3.0',
+            layers: "timeseries",
+            format: "image/png",
             transparent: true,
             opacity: 0.8,
-            styles: style,
-            colorscalerange: range,
-            attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
+            styles: "boxfill/whiteblue",
+            colorscalerange: "0,3",
+            pane: 'floodMap',
+            crossOrigin: false,
         });
 
-        const testTimeLayer = L.timeDimension.layer.wms(floodMapLayer, {
+        const timedLayer = L.timeDimension.layer.wms(floodMapLayer, {
+            name: 'time',
+            requestTimeFromCapabilities: true,
             updateTimeDimension: true,
+            updateTimeDimensionMode: 'replace',
+            cache: 20,
         });
-        netcdf.addLayer(testTimeLayer).addTo(map);
 
+        netcdf.addLayer(timedLayer).addTo(map);
+        
+        let src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedscale.nc?" +
+            "REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=whiteblue&COLORSCALERANGE=0,3";
 
         $(".legend").remove();
 
@@ -366,29 +387,6 @@ $(document).ready(function () {
         };
 
         Legend.addTo(map);
-        floodMapLayer.bringToFront();
-    }
-
-    function whenClicked(e) {
-        const COMID = e.target.feature.properties.COMID;
-
-        netcdf.clearLayers();
-
-        if (currentFloodExtentLayer) {
-            map.removeLayer(currentFloodExtentLayer);
-        }
-
-        const testWMS = `https://tethys.byu.edu/thredds/wms/testAll/Yaque_Del_Norte_Viewer/floodextent${COMID}.nc`;
-        const scale = 'flooded';
-        const maxheight = 3;
-        addnetcdflayer(testWMS, scale, maxheight);
-
         $("#current-stream").html(COMID);
-
-        // TODO: Add this, should just have to get the path to a netcdf file on the server
-        // currentFloodExtentLayer =
-
     }
-
-
 });

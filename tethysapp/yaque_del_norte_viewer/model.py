@@ -262,6 +262,10 @@ def generate_summary_df(query_string):
     # Convert dates to strings
     df["time"] = df["time"].apply(lambda x: x.strftime("%Y-%m-%d %H:%M:%S"))
 
+    full_report = df.copy()  # Full Report to give to user
+    full_report.columns = ["lat", "lon", "time", "flood_height (m)", "grid_code", 
+                           "population", "damage",]	
+
     df.drop(["lat", "lon", "grid_code"], axis=1, inplace=True)
 
     df_summed = df.groupby(df["time"]).agg({'timeseries': 'max',
@@ -277,4 +281,4 @@ def generate_summary_df(query_string):
 
     print("Time to reindex with entire time series", time.time() - start)
 
-    return df_summed
+    return df_summed, full_report
