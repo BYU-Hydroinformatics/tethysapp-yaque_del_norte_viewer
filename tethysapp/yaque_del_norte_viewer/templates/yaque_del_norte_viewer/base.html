@@ -14,20 +14,21 @@
 {% block app_navigation_items %}
 
     <!-- Select Forecast Date -->
-    <li class="title">Select Flood Forecast Date</li>
-    <div style="padding: 0 20px 10px;">
-        <input type="date" id="dateinput"/>
-    </div>
+    <li class="title">Yaque Del Norte Flood Viewer App</li>
+    <div id="page-loader" class="loader" style="margin-left: 15px"></div>
+{#    <div style="padding: 0 20px 10px;">#}
+{#        <input type="date" id="dateinput"/>#}
+{#    </div>#}
 
     <li class="separator"></li>
 
-    <!-- Select Forecast Type-->
-    <li class="title">Select Forecast Type</li>
-    <div id="checkboxes" style="padding: 0 20px 5px">
-        <input type="radio" name="forecast_type" id="checkprob" onclick="plotlegend('prob')"> Probability<br/>
-        <input type="radio" name="forecast_type" id="checkmax" onclick="plotlegend('max')" checked> Max<br/>
-        <input type="radio" name="forecast_type" id="checkmean" onclick="plotlegend('mean')"> Mean<br/>
-    </div>
+{#     Select Forecast Type#}
+{#        <li class="title">Select Forecast Type</li>#}
+{#        <div id="checkboxes" style="padding: 0 20px 5px">#}
+{#            <input type="radio" name="forecast_type" id="checkprob" onclick="plotlegend('prob')"> Probability<br/>#}
+{#            <input type="radio" name="forecast_type" id="checkmax" onclick="plotlegend('max')" checked> Max<br/>#}
+{#            <input type="radio" name="forecast_type" id="checkmean" onclick="plotlegend('mean')"> Mean<br/>#}
+{#        </div>#}
 
     <li class="separator"></li>
     <!-- Damage Report Button, Modal code in home.html -->

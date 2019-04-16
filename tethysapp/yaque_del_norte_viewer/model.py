@@ -171,7 +171,7 @@ def generate_summary_df(query_string):
 
     start = time.time()
 
-    df = df.loc[df["Height"] != 0]  # Drop Zero Values
+    df = df.loc[df["timeseries"] != 0]  # Drop Zero Values
     df = df.reset_index()  # Convert from multi-index df to single-index df
 
     if df.empty:
@@ -247,7 +247,7 @@ def generate_summary_df(query_string):
     exchange_rates = json.loads(r.text)
     ratio = exchange_rates["rates"]["USD"]  # USD compared to Euros
 
-    df["damage"] = list(zip(df["grid_code"], df["Height"]))
+    df["damage"] = list(zip(df["grid_code"], df["timeseries"]))
 
     df["damage"] = df["damage"].apply(lambda x: calculate_cost(x[0], x[1], ratio))
 
@@ -264,7 +264,7 @@ def generate_summary_df(query_string):
 
     df.drop(["lat", "lon", "grid_code"], axis=1, inplace=True)
 
-    df_summed = df.groupby(df["time"]).agg({'Height': 'max',
+    df_summed = df.groupby(df["time"]).agg({'timeseries': 'max',
                                             'damage': 'sum',
                                             'population': 'sum',
                                             })

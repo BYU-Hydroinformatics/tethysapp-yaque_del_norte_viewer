@@ -18,9 +18,8 @@ $.ajaxSetup({
 // Main Body
 $(document).ready(function () {
     // Globals
-    let comid;
     let currentFloodExtentLayer;
-    netcdf = L.layerGroup()
+    let netcdf = L.layerGroup();
 
     // Add map and basemap to the screen
     const map = L.map("map", {
@@ -37,7 +36,7 @@ $(document).ready(function () {
     // Population Layer (populationData variable defined in watershed_data.js)
     const populationLayer = L.geoJSON(populationData, {
         onEachFeature: onEachFeaturePopulation,
-        style: function (feature) {
+        style: function () {
             return {
                 weight: 2,
                 color: "#000000",
@@ -67,14 +66,52 @@ $(document).ready(function () {
         "Watershed Layer": watershedLayer,
     };
 
+
     L.control.layers(overlays).addTo(map);
-    const drainageLineLayer = L.geoJSON(drainageLineData, {
-        onEachFeature: onEachDrainageLine
-    }).addTo(map);
+
+    $.ajax({
+        url: "/apps/yaque-del-norte-viewer/is_flooded_check/", // the endpoint
+        type: "POST",
+        data: JSON.stringify({}),
+        dataType: 'json',
+
+        // handle a successful response
+        success: function (resp) {
+            // Create object to lookup keys easily
+            let lookUpObject = {};
+
+            for (let i = 0; i < resp["rivids"].length; i++) {
+                lookUpObject[resp["rivids"][i]] = resp["is_flooded"][i]
+            }
 
 
-    $("#dateinput").on('change', function () {
-        const date = document.getElementById("dateinput").value;
+
+            const drainageLineLayer = L.geoJSON(drainageLineData, {
+                onEachFeature: function (feature, layer) {
+                    if (lookUpObject[feature.properties.COMID]) {
+                        layer.on({
+                            click: whenClicked
+                        });
+                    }
+                },
+
+                style: function (feature) {
+                    if (lookUpObject[feature.properties.COMID]) {
+                        return {
+                            weight: 2,
+                            color: "#FF0000",
+                            opacity: 1,
+                        }
+                    }
+                },
+            }).addTo(map);
+            $("#page-loader").fadeOut();
+        },
+
+        // handle a non-successful response
+        error: function (xhr, errmsg, err) {
+            console.log(xhr.status + ": " + xhr.responseText); // provide info about the error to the console
+        },
     });
 
     // When the Layer Control layer is changed this brings the drainage lines to the front of the map.
@@ -85,9 +122,11 @@ $(document).ready(function () {
     // Event that fire's after the modal content is loaded
     $('#damage-report-modal').on('shown.bs.modal', function () {
 
+        const comid = parseFloat($("#current-stream").html());
+
         // Not flooded: 104
         let json_data = {
-            query_string: "https://tethys.byu.edu/thredds/fileServer/testAll/floodextent/floodedgrid150.nc"
+            query_string: `https://tethys.byu.edu/thredds/fileServer/testAll/Yaque_Del_Norte_Viewer/floodextent${comid}.nc`
         };
 
         $.ajax({
@@ -98,8 +137,6 @@ $(document).ready(function () {
 
             // handle a successful response
             success: function (resp) {
-
-                console.log(resp);
 
                 let isError = resp["error"];
 
@@ -202,7 +239,6 @@ $(document).ready(function () {
                     $("#max_people").html(Math.max(...resp["population_impacted_list"]) + " people");
 
                     $("#damage-report").fadeIn();
-                    console.log(resp);
                     $("#damage-report-loader").fadeOut();
                 }
             },
@@ -281,59 +317,56 @@ $(document).ready(function () {
         layer.bindPopup(popupContent);
     }
 
-    function onEachDrainageLine(feature, layer) {
-        // comid.push(feature.propertiesCOMID);
+    function addnetcdflayer(wms, scale, maxheight) {
 
-        layer.on({
-            click: whenClicked
-        });
+        let src;
+        let style;
+        let layer;
+        let range;
 
-    }
-
-    function addnetcdflayer (wms, scale, maxheight) {
-
-        if (scale == 'prob') {
-            var range = '1.5,100'
-            var layer = 'Flood_Probability'
-            var style = 'boxfill/prob'
-            var src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/probscale.nc?REQUEST=GetLegendGraphic&LAYER=Flood_Probability&PALETTE=prob&COLORSCALERANGE=0,100"
+        if (scale === 'prob') {
+            range = '1.5,100';
+            layer = 'Flood_Probability';
+            style = 'boxfill/prob';
+            src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/probscale.nc?REQUEST=GetLegendGraphic&LAYER=Flood_Probability&PALETTE=prob&COLORSCALERANGE=0,100";
         } else {
-            var range = '0,' + maxheight
-            var layer = 'timeseries'
-            var style = 'boxfill/whiteblue'
-            var src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=whiteblue&COLORSCALERANGE=0," + maxheight
+            range = '0,' + maxheight;
+            layer = 'timeseries';
+            style = 'boxfill/whiteblue';
+            src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=whiteblue&COLORSCALERANGE=0," + maxheight;
         }
 
-        var testLayer = L.tileLayer.wms(wms, {
+        const floodMapLayer = L.tileLayer.wms(wms, {
             layers: layer,
             format: 'image/png',
             transparent: true,
-            opacity:0.8,
+            opacity: 0.8,
             styles: style,
             colorscalerange: range,
             attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
         });
-        console.log(testLayer);
-        var testTimeLayer = L.timeDimension.layer.wms(testLayer, {
+
+        const testTimeLayer = L.timeDimension.layer.wms(floodMapLayer, {
             updateTimeDimension: true,
         });
-        netcdf.addLayer(testTimeLayer).addTo(map)
+        netcdf.addLayer(testTimeLayer).addTo(map);
 
 
-        $(".legend").remove()
+        $(".legend").remove();
 
-        var Legend = L.control({
+        const Legend = L.control({
             position: 'bottomright'
         });
 
-        Legend.onAdd = function(map) {
-            var div = L.DomUtil.create('div', 'info legend');
+        Legend.onAdd = function (map) {
+            const div = L.DomUtil.create('div', 'info legend');
             div.innerHTML +=
                 '<img src="' + src + '" alt="legend">';
             return div;
         };
 
         Legend.addTo(map);
+        floodMapLayer.bringToFront();
     }
 
     function whenClicked(e) {
@@ -345,18 +378,17 @@ $(document).ready(function () {
             map.removeLayer(currentFloodExtentLayer);
         }
 
-        var testWMS=`https://tethys.byu.edu/thredds/wms/testAll/Yaque_Del_Norte_Viewer/floodextent${COMID}.nc`
-        var scale = 'flooded'
-        var maxheight = 3
-        addnetcdflayer (testWMS, scale, maxheight)
+        const testWMS = `https://tethys.byu.edu/thredds/wms/testAll/Yaque_Del_Norte_Viewer/floodextent${COMID}.nc`;
+        const scale = 'flooded';
+        const maxheight = 3;
+        addnetcdflayer(testWMS, scale, maxheight);
 
-         $("#current-stream").html(COMID);
+        $("#current-stream").html(COMID);
 
         // TODO: Add this, should just have to get the path to a netcdf file on the server
         // currentFloodExtentLayer =
 
     }
-
 
 
 });

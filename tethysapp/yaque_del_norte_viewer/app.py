@@ -35,6 +35,11 @@ class YaqueDelNorteViewer(TethysAppBase):
                 url='damage_report_ajax',
                 controller='yaque_del_norte_viewer.controllers.damage_report_ajax'
             ),
+            UrlMap(
+                name='is_flooded_check',
+                url='is_flooded_check',
+                controller='yaque_del_norte_viewer.controllers.is_flooded_check'
+            ),
         )
 
         return url_maps
