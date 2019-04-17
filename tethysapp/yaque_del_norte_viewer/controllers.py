@@ -18,6 +18,7 @@ from xarray import open_dataset
 from io import BytesIO
 import uuid
 import os
+import xml.etree.ElementTree as et
 
 
 @login_required()
@@ -26,7 +27,23 @@ def home(request):
     Controller for the app home page.
     """
 
-    context = {}
+    resp = requests.get(
+        r"https://tethys.byu.edu/thredds/wms/testAll/Yaque_Del_Norte_Viewer/floodextent4407.nc?"
+        r"request=GetCapabilities&service=WMS&version=1.3.0"
+    )
+
+    tree = et.fromstring(resp.content)
+    dates_str = tree[1][2][11][1][5].text.strip("\n").strip()
+
+    dates_list = dates_str.split(",")
+    start_date = dates_list[0]
+    end_date = dates_list[-1]
+
+    context = {
+        "dates_str": dates_str,
+        "start_date": start_date,
+        "end_date": end_date,
+    }
 
     return render(request, 'yaque_del_norte_viewer/home.html', context)
 

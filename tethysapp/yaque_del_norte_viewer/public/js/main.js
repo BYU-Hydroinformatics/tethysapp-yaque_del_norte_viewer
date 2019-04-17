@@ -19,12 +19,15 @@ $.ajaxSetup({
 $(document).ready(function () {
     // Globals
     let netcdf = L.layerGroup();
-
+    
     // Add map and basemap to the screen
     const map = L.map("map", {
         fullscreenControl: true,
         timeDimension: true,
         timeDimensionControl: true,
+        timeDimensionOptions: {
+            times: $("#dates_str").html(),
+        },
     }).setView([19.042805, -70.581183], 8);
 
     L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
@@ -357,14 +360,13 @@ $(document).ready(function () {
             styles: "boxfill/whiteblue",
             colorscalerange: "0,3",
             pane: 'floodMap',
-            crossOrigin: false,
+            // crossOrigin: false,
         });
 
         const timedLayer = L.timeDimension.layer.wms(floodMapLayer, {
             name: 'time',
-            requestTimeFromCapabilities: true,
-            updateTimeDimension: true,
-            updateTimeDimensionMode: 'replace',
+            requestTimeFromCapabilities: false,
+            updateTimeDimension: false,
             cache: 20,
         });
 
