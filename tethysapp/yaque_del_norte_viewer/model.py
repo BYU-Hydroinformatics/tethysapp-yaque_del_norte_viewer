@@ -213,9 +213,9 @@ def generate_summary_df(query_string):
             func.ST_Contains(SpatialPopulation.geom, 'SRID=4326;POINT({} {})'.format(lon, lat))
         )
 
-        assert query.count() == 1, "Query by point returned multiple polygons (model.generate_summary_df)"
-        assert query_population.count() == 1, "Query population by point returned multiple polygons " \
-                                              "(model.generate_summary_df"
+#         assert query.count() == 1, "Query by point returned multiple polygons (model.generate_summary_df)"
+#         assert query_population.count() == 1, "Query population by point returned multiple polygons " \
+#                                               "(model.generate_summary_df"
 
         coord_dict[(lat, lon)] = query[0].gridcode
 
